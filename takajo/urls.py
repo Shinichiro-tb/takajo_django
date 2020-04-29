@@ -18,6 +18,5 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('lodging/', include('lodging.urls')), #lodging/urls.py を読み込みそれの大もとパスをlodgingに設定
     path('booking/', include('booking.urls'))
 ]

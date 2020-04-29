@@ -37,13 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'stopmeal.apps.StopmealConfig', #欠食届アプリ
-    'bike.apps.BikeConfig', #自転車貸出アプリ
-    'lodging.apps.LodgingConfig', #外泊届アプリ
-    'morning_rollcoll.apps.MorningRollcollConfig', #朝点呼不在届アプリ
-    'night_rollcoll.apps.NightRollcollConfig', #夜点呼不在届アプリ
-
-    'booking.apps.BookingConfig', ##自転車貸出アプリver2
+    'booking.apps.BookingConfig', ##自転車貸出アプリ
     'bootstrap4',           # django-bootstrap4
 ]
 

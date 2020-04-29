@@ -137,7 +137,7 @@ class Booking(generic.CreateView):
         hour = self.kwargs.get('hour')
         minute = self.kwargs.get('min')
         bike = self.kwargs.get('bike') #どの自転車を使うか
-        bike_name = get_object_or_404(Biketype, bikename=bike)
+        bike_name = get_object_or_404(Biketype, bikename=bike) #modelsから拾って来る
 
         date = datetime.date(year=year, month=month, day=day) #date型 予約日
         start = datetime.time(hour=hour, minute=minute) #time 予約開始時間
@@ -157,10 +157,11 @@ class Booking(generic.CreateView):
 
         if (difference_sec > 10800):
             messages.error(self.request, '3時間超えてますよ〜')
-            return redirect('booking:book', year=year, month=month, day=day, hour=hour, min=minute)
+            return redirect('booking:book', year=year, month=month, day=day, hour=hour, min=minute, bike=bike)
 
         elif(difference_sec <= 0):
-            messages.error(self.request, "開始時間より終了時間のほうがまえになってますよ〜")
+            messages.error(self.request, '開始時間より終了時間のほうがまえになってますよ〜')
+            return redirect('booking:book', year=year, month=month, day=day, hour=hour, min=minute, bike=bike)
 
         else:
             schedule = form.save(commit=False)
