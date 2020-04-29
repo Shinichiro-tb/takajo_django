@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+{% load i18n static %}
+<html>
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link rel="stylesheet" href="{% static 'booking/css/bootstrap.min.css' %}">
+<title>{% block title %}自転車貸出{% endblock %}</title>
+</head>
+
+<!--他のhtmlファイルからデータを受け取って表示する-->
+<body>
+  {% if messages %}
+  <ul class="messages text-center">
+    {% for message in messages %}
+    <li>  {{ message }}  </li>
+    
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  <div class="container">
+    {% block content %}
+      {{ content }}
+    {% endblock %}
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script> 
+  <script src="{% static 'booking/js/bootstrap.bundle.min.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+
+</html>

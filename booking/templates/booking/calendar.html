@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+
+{% extends "booking/base.html" %}
+{% load bootstrap4 %}
+
+{% block title %}カレンダー{% endblock title %}
+
+{% block content %}
+    <h4 class="mt-4 mb-5 border-bottom">予約一覧カレンダー {{date}} ({{day}})
+        <a href="{% url 'booking:calendar' %}" class="btn btn-primary btn-sm my-3">更新or当日</a><br>
+        <i> {{message}}</i>
+    </h4>
+
+    <table class="table table-striped">
+        <thead class="sticky-top">
+            <tr>
+                <th scope="col" class="text-left">
+                    <a href="{% url 'booking:calendar' before.year before.month before.day %}" class="btn btn-info btn-sm">前日</a>
+                </th>
+                {% for bike in bikelist%}
+                    <th scope="col" class="text-center bg-success">{{bike}}</th>
+                {% endfor %}
+                <th scope="col" class="text-right">
+                    <a href="{% url 'booking:calendar' after.year after.month after.day %}" class="btn btn-info btn-sm">次日</a>
+                </th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for time, schedule in calendar.items %}
+            <tr>
+                <th scope="row">{{time}}</th>
+
+                {% for bike, book in schedule.items %}
+                <td class="text-center">
+                    {% if book  == True%}
+                        <a href="{% url 'booking:book' date.year date.month date.day time.hour time.minute bike %}" >○</a>
+
+                    {% elif book == False%}
+                        ×
+
+                    {% else%}
+                        <a href="">{{book}}</a>
+                    {% endif %}
+                </td>
+                {% endfor %}
+
+                <th class="text-right">{{time}}</th>
+            </tr>
+            {% endfor %}
+
+        </tbody>
+    </table>
+
+{% endblock content %}

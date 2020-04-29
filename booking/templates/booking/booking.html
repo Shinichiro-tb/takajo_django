@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+
+{% extends "booking/base.html" %}
+{% load bootstrap4 %}
+
+{% block title %}予約{% endblock title %}
+
+{% block content %}
+<h4 class="mt-4 mb-5 border-bottom">予約</h4>
+<p class="mt-4 mb-5 border-bottom">利用日：{{ view.kwargs.year }}年{{ view.kwargs.month }}月{{ view.kwargs.day }}日 <br>
+                                   開始時間：{{ view.kwargs.hour }}時{{ view.kwargs.min }}分 <br>
+                                   自転車：{{ view.kwargs.bike }}</p>
+
+<form action="" method="POST">
+
+  {% csrf_token %}
+  <!--views.pyの変数formを受け継いでhtmlに埋め込む-->
+  {% bootstrap_form form layout='horizontal' %}
+  
+    <div class="form-group row">
+        <div class="offset-md-3 col-md-9">
+            <button type="submit" class="btn btn-primary">送信</button>
+        </div>
+    </div>
+</form>
+
+{% endblock content %}
