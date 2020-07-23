@@ -6,7 +6,10 @@
 {% block title %}予約{% endblock title %}
 
 {% block content %}
-<h4 class="mt-4 mb-5 border-bottom">予約</h4>
+<h4 class="mt-4 mb-5 border-bottom">予約
+    <a href="{% url 'booking:calendar' %}" class="btn btn-primary btn-sm my-3">カレンダー</a><br>
+</h4>
+
 <p class="mt-4 mb-5 border-bottom">利用日：{{ view.kwargs.year }}年{{ view.kwargs.month }}月{{ view.kwargs.day }}日 <br>
                                    開始時間：{{ view.kwargs.hour }}時{{ view.kwargs.min }}分 <br>
                                    自転車：{{ view.kwargs.bike }}</p>

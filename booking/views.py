@@ -11,6 +11,9 @@ from booking.forms import BookForm
 #from django.shortcuts import render
 #from django.utils import timezone
 
+#print(type(difference_day)) #型確認
+#print("\n")
+
 
 ###予約一覧カレンダー
 class Calendar(generic.TemplateView):
@@ -137,7 +140,7 @@ class Booking(generic.CreateView):
         hour = self.kwargs.get('hour')
         minute = self.kwargs.get('min')
         bike = self.kwargs.get('bike') #どの自転車を使うか
-        bike_name = get_object_or_404(Biketype, bikename=bike) #modelsから拾って来る
+        bike_name = get_object_or_404(Biketype, bikename=bike)
 
         date = datetime.date(year=year, month=month, day=day) #date型 予約日
         start = datetime.time(hour=hour, minute=minute) #time 予約開始時間
@@ -153,14 +156,16 @@ class Booking(generic.CreateView):
 
         ##時間計算
         difference = end_dt - start_dt #使用時間 timedelta
-        difference_sec = difference.seconds #秒に直す int
+        difference_sec = difference.seconds #時間部分を秒に直す int
+        difference_day = difference.days * 86400 #日付差分を秒に治す int
+        difference_all = difference_sec + difference_day
 
-        if (difference_sec > 10800):
+        if (difference_all > 10800):
             messages.error(self.request, '3時間超えてますよ〜')
             return redirect('booking:book', year=year, month=month, day=day, hour=hour, min=minute, bike=bike)
 
-        elif(difference_sec <= 0):
-            messages.error(self.request, '開始時間より終了時間のほうがまえになってますよ〜')
+        elif(difference_all <= 0):
+            messages.error(self.request, "開始時間より終了時間のほうがまえになってますよ〜")
             return redirect('booking:book', year=year, month=month, day=day, hour=hour, min=minute, bike=bike)
 
         else:
