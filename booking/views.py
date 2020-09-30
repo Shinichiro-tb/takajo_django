@@ -1,11 +1,11 @@
 import datetime
 from django.db.models import Q #データベース検索に使うhttps://qiita.com/okoppe8/items/66a8747cf179a538355b ⇐ここ見て（クエリの文法）！
 from django.views import generic
-from booking.models import Biketype, Schedule
+from takajo.booking.models import Biketype, Schedule
 
 from django.contrib import messages
 from django.shortcuts import redirect, get_object_or_404
-from booking.forms import BookForm
+from takajo.booking.forms import BookForm
 
 #from django.http import HttpResponse
 #from django.shortcuts import render

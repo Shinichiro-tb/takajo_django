@@ -1,5 +1,5 @@
 from django.urls import path
-from booking import views
+from takajo.booking import views
 
 app_name = 'booking'
 
