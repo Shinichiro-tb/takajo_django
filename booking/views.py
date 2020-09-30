@@ -76,7 +76,7 @@ class Calendar(generic.TemplateView):
 
         start_time =datetime.time(8, 00, 00) #予約可能開始時間
         end_time = datetime.time(22,00, 00) #予約可能終了時間
-        message = ""
+        #message = ""
 
         ### コメントアウト中の()のなかは構文や変数
         ### Scheduleクラスから 予約されたdateがいま表示されているカレンダーの日付と一緒(filter)のであるところの
@@ -102,9 +102,11 @@ class Calendar(generic.TemplateView):
                     book_start_time = cast_start_time.time() #time型
                     if (calendar[book_start_time][bike_type] == True):
                         calendar[book_start_time][bike_type] = False
-                        message = "予約完了"
+                        #message = "予約完了"
                     else:
                         message = "予約ができてない可能性があります。確認を！！"
+                        #messages.error(self.request, 'ブッキング！！！')
+                        #return redirect('booking:book', year=year, month=month, day=day, hour=hour, min=minute, bike=bike)
 
         ## htmlに値を渡す
         context['date'] = base_date
@@ -180,3 +182,13 @@ class Booking(generic.CreateView):
         """バリデーションを通らなかったとき"""
         messages.warning(self.request, 'もう一度入力してね')
         return super().form_invalid(form)
+
+
+class Mypage(generic.TemplateView):
+    """
+    予約の個人ページ
+    """
+    template_name = 'booking/my_page.html'
+
+    def get_context_data(self, **kwargs):
+        return super().get_context_data(**kwargs)

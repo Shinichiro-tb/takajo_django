@@ -40,7 +40,7 @@
                         ×
 
                     {% else%}
-                        <a href="">{{book}}</a>
+                        <a href="{% url 'booking:mypage' date.year date.month date.day time.hour time.minute bike  %}">{{book}}</a>
                     {% endif %}
                 </td>
                 {% endfor %}
