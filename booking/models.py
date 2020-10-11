@@ -34,4 +34,4 @@ class Schedule(models.Model):
         start = self.start.strftime('%H:%M:%S') #date型を'文字列型'に変換
         end = self.end.strftime('%H:%M:%S')
         date = self.date.strftime('%Y/%m/%d')
-        return f'{self.user} {start} ^ {end} {date} {self.biketype}'
+        return f'{self.user} {date} {start} ^ {end} {self.biketype}'

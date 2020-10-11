@@ -1,11 +1,11 @@
 import datetime
 from django.db.models import Q #データベース検索に使うhttps://qiita.com/okoppe8/items/66a8747cf179a538355b ⇐ここ見て（クエリの文法）！
 from django.views import generic
-from takajo.booking.models import Biketype, Schedule
+from booking.models import Biketype, Schedule
 
 from django.contrib import messages
 from django.shortcuts import redirect, get_object_or_404
-from takajo.booking.forms import BookForm
+from booking.forms import BookForm
 
 #from django.http import HttpResponse
 #from django.shortcuts import render
@@ -74,9 +74,9 @@ class Calendar(generic.TemplateView):
 
         ###予約の取得
 
-        start_time =datetime.time(8, 00, 00) #予約可能開始時間
+        start_time = datetime.time(8, 00, 00) #予約可能開始時間
         end_time = datetime.time(22,00, 00) #予約可能終了時間
-        #message = ""
+        message = ""
 
         ### コメントアウト中の()のなかは構文や変数
         ### Scheduleクラスから 予約されたdateがいま表示されているカレンダーの日付と一緒(filter)のであるところの
@@ -191,4 +191,41 @@ class Mypage(generic.TemplateView):
     template_name = 'booking/my_page.html'
 
     def get_context_data(self, **kwargs):
-        return super().get_context_data(**kwargs)
+        """htmlにデータを送る準備(個人ページの)"""
+        context = super().get_context_data(**kwargs)
+        
+        #URLから取得
+        year = self.kwargs.get('year')
+        month = self.kwargs.get('month')
+        day = self.kwargs.get('day')
+        booking_date = datetime.date(year=year, month=month, day=day) #貸出予定の日にち
+
+        hour = self.kwargs.get('hour')
+        minute = self.kwargs.get('min')
+        booking_s_time = datetime.time(hour, minute) #貸出開始予定時間
+
+        bike = str(self.kwargs.get('bike'))
+        print(type(bike))
+        print(bike)
+        print("\n")
+
+        #自転車と自転車のidをリストに格納
+        bikelist = []
+        for A in Biketype.objects.all():
+            b_list = [A.id, A.bikename]
+            bikelist.append(b_list)
+            print(bikelist)
+
+        #scheduleからmypageに表示するユーザーを探し当てる
+        schdule = Schedule.objects.filter(date=booking_date, start=booking_s_time, biketype=6)
+        print(schdule)
+        print("\n")
+        #booking_e_time = schdule.end
+        #user_name = schdule.user
+
+        context['date'] = booking_date
+        context['s_time'] = booking_s_time
+        #context['e_time'] = booking_e_time
+        #context['ueser'] = user_name
+        return context
+        context['bike'] = bike
