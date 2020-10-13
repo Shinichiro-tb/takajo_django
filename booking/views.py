@@ -205,27 +205,35 @@ class Mypage(generic.TemplateView):
         booking_s_time = datetime.time(hour, minute) #貸出開始予定時間
 
         bike = str(self.kwargs.get('bike'))
-        print(type(bike))
-        print(bike)
-        print("\n")
+        #print(bike)
 
         #自転車と自転車のidをリストに格納
         bikelist = []
         for A in Biketype.objects.all():
             b_list = [A.id, A.bikename]
             bikelist.append(b_list)
-            print(bikelist)
+        print(bikelist)
+
+        number=0 #カウント変数
+        #bike_idの検索
+        while (bikelist[number][1] != bike):
+            number += 1
+        bike_id = bikelist[number][0] #予約された自転車のid
+        print(bike_id)
+
 
         #scheduleからmypageに表示するユーザーを探し当てる
-        schdule = Schedule.objects.filter(date=booking_date, start=booking_s_time, biketype=6)
-        print(schdule)
-        print("\n")
-        #booking_e_time = schdule.end
-        #user_name = schdule.user
+        for schedule in Schedule.objects.filter(date=booking_date, start=booking_s_time, biketype=bike_id):
+            booking_e_time = schedule.end
+            user_name = schedule.user
+
+        print(booking_e_time)
+        print(user_name)
 
         context['date'] = booking_date
         context['s_time'] = booking_s_time
-        #context['e_time'] = booking_e_time
-        #context['ueser'] = user_name
-        return context
+        context['e_time'] = booking_e_time
+        context['ueser'] = user_name
         context['bike'] = bike
+
+        return context
