@@ -212,22 +212,21 @@ class Mypage(generic.TemplateView):
         for A in Biketype.objects.all():
             b_list = [A.id, A.bikename]
             bikelist.append(b_list)
-        print(bikelist)
+        #print(bikelist)
 
         number=0 #カウント変数
         #bike_idの検索
         while (bikelist[number][1] != bike):
             number += 1
         bike_id = bikelist[number][0] #予約された自転車のid
-        print(bike_id)
+        #print(bike_id)
 
         #scheduleからmypageに表示するユーザーを探し当てる
         for schedule in Schedule.objects.filter(date=booking_date, start=booking_s_time, biketype=bike_id):
             booking_e_time = schedule.end
             user_name = schedule.user
-
-        print(booking_e_time)
-        print(user_name)
+        #print(booking_e_time)
+        #print(user_name)
 
         context['e_time'] = booking_e_time
         context['user'] = user_name
