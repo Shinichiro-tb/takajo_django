@@ -132,6 +132,17 @@ class Booking(generic.CreateView):
     def get_context_data(self, **kwargs):
         """htmlに値を送るための準備"""
         context = super().get_context_data(**kwargs) #URLから情報を取得
+
+        #時間表示をきれいにする
+        hour = self.kwargs.get('hour')
+        minute = self.kwargs.get('min')
+        if(hour<10):
+            hour = "0" + str(self.kwargs.get('hour'))
+        if(minute<9):
+            minute = "0" + str(self.kwargs.get('min'))
+
+        context['hour'] = hour
+        context['minute'] = minute
         return context
 
     def form_valid(self, form):
@@ -144,15 +155,15 @@ class Booking(generic.CreateView):
         bike = self.kwargs.get('bike') #どの自転車を使うか
         bike_name = get_object_or_404(Biketype, bikename=bike)
 
-        date = datetime.date(year=year, month=month, day=day) #date型 予約日
-        start = datetime.time(hour=hour, minute=minute) #time 予約開始時間
+        booking_date = datetime.date(year=year, month=month, day=day) #date型 予約日
+        booking_s_start = datetime.time(hour=hour, minute=minute) #time 予約開始時間
 
         end_str = self.request.POST.get('end') #str型 form入力データ
 
         ##計算のために型を変換する
-        start_dt = datetime.datetime.combine(date, start) #datetime 予約日+予約開始
+        start_dt = datetime.datetime.combine(booking_date, booking_s_start) #datetime 予約日+予約開始
         
-        date_str = date.strftime("%Y/%m/%d") #予約日を文字列型に
+        date_str = booking_date.strftime("%Y/%m/%d") #予約日を文字列型に
         dt_str = date_str + end_str #予約日+終了時間（文字列の足し算）
         end_dt = datetime.datetime.strptime(dt_str, "%Y/%m/%d%H:%M:%S") #datetime型に変換
 
@@ -161,6 +172,12 @@ class Booking(generic.CreateView):
         difference_sec = difference.seconds #時間部分を秒に直す int
         difference_day = difference.days * 86400 #日付差分を秒に治す int
         difference_all = difference_sec + difference_day
+
+        #scheduleから同じ自転車をその日に予約したユーザーを探し当てる
+        #for schedule in Schedule.objects.filter(date=booking_date, start=booking_s_time, biketype=bike_id):
+            #booking_e_time = schedule.end
+            #user_name = schedule.user
+
 
         if (difference_all > 10800):
             messages.error(self.request, '3時間超えてますよ〜')
@@ -192,6 +209,7 @@ class Mypage(generic.TemplateView):
 
     def get_context_data(self, **kwargs):
         """htmlにデータを送る準備(個人ページの)"""
+
         context = super().get_context_data(**kwargs)
         
         #URLから取得
