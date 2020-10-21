@@ -96,15 +96,19 @@ class Calendar(generic.TemplateView):
             #予約データ確認
             if book_start_time in calendar and bike_type in calendar[book_start_time]:
                 calendar[book_start_time][bike_type] = user_name
+                cast_start_time = datetime.datetime.combine(base_date, book_start_time) + datetime.timedelta(minutes=15) #datetime型、予約開始時間に15分足す
+                book_start_time = cast_start_time.time() #time型、時間だけ取り出す
 
                 while (book_start_time < book_end_time):
-                    cast_start_time = datetime.datetime.combine(base_date, book_start_time) + datetime.timedelta(minutes=15) #datetime型
-                    book_start_time = cast_start_time.time() #time型
                     if (calendar[book_start_time][bike_type] == True):
                         calendar[book_start_time][bike_type] = False
+                        cast_start_time = datetime.datetime.combine(base_date, book_start_time) + datetime.timedelta(minutes=15) #datetime型
+                        book_start_time = cast_start_time.time() #time型
                         #message = "予約完了"
                     else:
                         message = "予約ができてない可能性があります。確認を！！"
+                        cast_start_time = datetime.datetime.combine(base_date, book_start_time) + datetime.timedelta(minutes=15) #datetime型
+                        book_start_time = cast_start_time.time() #time型
                         #messages.error(self.request, 'ブッキング！！！')
                         #return redirect('booking:book', year=year, month=month, day=day, hour=hour, min=minute, bike=bike)
 
@@ -138,7 +142,7 @@ class Booking(generic.CreateView):
         minute = self.kwargs.get('min')
         if(hour<10):
             hour = "0" + str(self.kwargs.get('hour'))
-        if(minute<9):
+        if(minute<10):
             minute = "0" + str(self.kwargs.get('min'))
 
         context['hour'] = hour
@@ -155,13 +159,24 @@ class Booking(generic.CreateView):
         bike = self.kwargs.get('bike') #どの自転車を使うか
         bike_name = get_object_or_404(Biketype, bikename=bike)
 
+        #自転車と自転車のidをリストに格納
+        bikelist = []
+        for A in Biketype.objects.all():
+            b_list = [A.id, A.bikename]
+            bikelist.append(b_list)
+        number=0 #カウント変数
+        #bike_idの検索
+        while (bikelist[number][1] != bike):
+            number += 1
+        bike_id = bikelist[number][0] #予約された自転車のid
+
         booking_date = datetime.date(year=year, month=month, day=day) #date型 予約日
-        booking_s_start = datetime.time(hour=hour, minute=minute) #time 予約開始時間
+        booking_s_time = datetime.time(hour=hour, minute=minute) #time 予約開始時間
 
         end_str = self.request.POST.get('end') #str型 form入力データ
 
         ##計算のために型を変換する
-        start_dt = datetime.datetime.combine(booking_date, booking_s_start) #datetime 予約日+予約開始
+        start_dt = datetime.datetime.combine(booking_date, booking_s_time) #datetime 予約日+予約開始
         
         date_str = booking_date.strftime("%Y/%m/%d") #予約日を文字列型に
         dt_str = date_str + end_str #予約日+終了時間（文字列の足し算）
@@ -174,9 +189,11 @@ class Booking(generic.CreateView):
         difference_all = difference_sec + difference_day
 
         #scheduleから同じ自転車をその日に予約したユーザーを探し当てる
-        #for schedule in Schedule.objects.filter(date=booking_date, start=booking_s_time, biketype=bike_id):
-            #booking_e_time = schedule.end
-            #user_name = schedule.user
+        for schedule in Schedule.objects.filter(date=booking_date, biketype=bike_id):
+            booking_number = schedule.id
+            booking_e_time = schedule.end
+            user_name = schedule.user
+
 
 
         if (difference_all > 10800):
@@ -189,8 +206,8 @@ class Booking(generic.CreateView):
 
         else:
             schedule = form.save(commit=False)
-            schedule.date = date
-            schedule.start = start
+            schedule.date = booking_date
+            schedule.start = booking_s_time
             schedule.biketype = bike_name
             schedule.save()
             return redirect('booking:calendar')
@@ -222,6 +239,12 @@ class Mypage(generic.TemplateView):
         minute = self.kwargs.get('min')
         booking_s_time = datetime.time(hour, minute) #貸出開始予定時間
 
+        #時間表示をきれいにする
+        if(hour<10):
+            hour = "0" + str(self.kwargs.get('hour'))
+        if(minute<10):
+            minute = "0" + str(self.kwargs.get('min'))
+
         bike = str(self.kwargs.get('bike'))
         #print(bike)
 
@@ -246,6 +269,8 @@ class Mypage(generic.TemplateView):
         #print(booking_e_time)
         #print(user_name)
 
+        context['hour'] = hour
+        context['minute'] = minute
         context['e_time'] = booking_e_time
         context['user'] = user_name
 
