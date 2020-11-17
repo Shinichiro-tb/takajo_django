@@ -10,4 +10,6 @@ urlpatterns = [
     path('book/<int:year>/<int:month>/<int:day>/<int:hour>/<int:min>/<str:bike>/', views.Booking.as_view(), name='book'), #予約詳細の画面へのURL
 
     path('mypage/<int:year>/<int:month>/<int:day>/<int:hour>/<int:min>/<str:bike>/', views.Mypage.as_view(), name='mypage'), #マイページ(貸出・削除・返却ページ)
+    
+    path('use/<str:end_time>/<str:bike>/', views.Use.as_view(), name='use') #使用開始ページ
 ]

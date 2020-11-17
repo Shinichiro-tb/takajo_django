@@ -14,6 +14,41 @@ from booking.forms import BookForm
 #print(type(difference_day)) #型確認
 #print("\n")
 
+def user_surch(bike, booking_date, booking_s_time):
+    """ユーザーを探す（バイクの種類, 予約日, 予約開始時刻）"""
+    #自転車と自転車のidをリストに格納
+    bikelist = []
+    for A in Biketype.objects.all():
+        b_list = [A.id, A.bikename]
+        bikelist.append(b_list)
+    #print(bikelist)
+    number=0 #カウント変数
+    #bike_idの検索
+    while (bikelist[number][1] != bike):
+        number += 1
+    bike_id = bikelist[number][0] #予約された自転車のid
+    #print(bike_id)
+    #scheduleからmypageに表示するユーザーを探し当てる
+    for schedule in Schedule.objects.filter(date=booking_date, start=booking_s_time, biketype=bike_id):
+        booking_e_time = schedule.end
+        user_name = schedule.user
+    #print(booking_e_time)
+    #print(user_name)
+    return booking_e_time, user_name
+
+def distplay_time(hour, minute):
+    """時間表示をきれいにする(時, 分)"""
+    if(hour<10):
+        hour_str = "0" + str(hour)
+    else:
+        hour_str = hour
+    if(minute<10):
+        minute_str = "0" + str(minute)
+    else:
+        minute_str =minute
+
+    return hour_str, minute_str
+
 
 ###予約一覧カレンダー
 class Calendar(generic.TemplateView):
@@ -109,8 +144,6 @@ class Calendar(generic.TemplateView):
                         message = "予約ができてない可能性があります。確認を！！"
                         cast_start_time = datetime.datetime.combine(base_date, book_start_time) + datetime.timedelta(minutes=15) #datetime型
                         book_start_time = cast_start_time.time() #time型
-                        #messages.error(self.request, 'ブッキング！！！')
-                        #return redirect('booking:book', year=year, month=month, day=day, hour=hour, min=minute, bike=bike)
 
         ## htmlに値を渡す
         context['date'] = base_date
@@ -137,16 +170,8 @@ class Booking(generic.CreateView):
         """htmlに値を送るための準備"""
         context = super().get_context_data(**kwargs) #URLから情報を取得
 
-        #時間表示をきれいにする
-        hour = self.kwargs.get('hour')
-        minute = self.kwargs.get('min')
-        if(hour<10):
-            hour = "0" + str(self.kwargs.get('hour'))
-        if(minute<10):
-            minute = "0" + str(self.kwargs.get('min'))
-
-        context['hour'] = hour
-        context['minute'] = minute
+        context['hour'] = distplay_time(self.kwargs.get('hour'), self.kwargs.get('min'))[0]
+        context['minute'] = distplay_time(self.kwargs.get('hour'), self.kwargs.get('min'))[1]
         return context
 
     def form_valid(self, form):
@@ -173,7 +198,8 @@ class Booking(generic.CreateView):
         booking_date = datetime.date(year=year, month=month, day=day) #date型 予約日
         booking_s_time = datetime.time(hour=hour, minute=minute) #time 予約開始時間
 
-        end_str = self.request.POST.get('end') #str型 form入力データ
+        end_str = self.request.POST.get('end') + ":00" #str型 form入力データ
+        print(end_str)
 
         ##計算のために型を変換する
         start_dt = datetime.datetime.combine(booking_date, booking_s_time) #datetime 予約日+予約開始
@@ -189,11 +215,15 @@ class Booking(generic.CreateView):
         difference_all = difference_sec + difference_day
 
         #scheduleから同じ自転車をその日に予約したユーザーを探し当てる
-        for schedule in Schedule.objects.filter(date=booking_date, biketype=bike_id):
-            booking_number = schedule.id
-            booking_e_time = schedule.end
-            user_name = schedule.user
-
+        for schedule_list in Schedule.objects.filter(date=booking_date, biketype=bike_id):
+            #booking_list_number = schedule_list.id
+            booking_list_s_time = schedule_list.start
+            booking_list_e_time = schedule_list.end
+            #user_list_name = schedule_list.user
+            print(booking_list_s_time)
+            if (booking_list_s_time<end_dt.time() and end_dt.time()<booking_list_e_time):
+                messages.error(self.request, '終了時間が他の利用者とかぶっています')
+                return redirect('booking:book', year=year, month=month, day=day, hour=hour, min=minute, bike=bike)
 
 
         if (difference_all > 10800):
@@ -239,39 +269,23 @@ class Mypage(generic.TemplateView):
         minute = self.kwargs.get('min')
         booking_s_time = datetime.time(hour, minute) #貸出開始予定時間
 
-        #時間表示をきれいにする
-        if(hour<10):
-            hour = "0" + str(self.kwargs.get('hour'))
-        if(minute<10):
-            minute = "0" + str(self.kwargs.get('min'))
-
         bike = str(self.kwargs.get('bike'))
         #print(bike)
 
-        #自転車と自転車のidをリストに格納
-        bikelist = []
-        for A in Biketype.objects.all():
-            b_list = [A.id, A.bikename]
-            bikelist.append(b_list)
-        #print(bikelist)
+        context['hour'] = distplay_time(hour, minute)[0]
+        context['minute'] = distplay_time(hour, minute)[1]
+        context['e_time'] = user_surch(bike, booking_date, booking_s_time)[0]
+        context['user'] = user_surch(bike, booking_date, booking_s_time)[1]
+        return context
 
-        number=0 #カウント変数
-        #bike_idの検索
-        while (bikelist[number][1] != bike):
-            number += 1
-        bike_id = bikelist[number][0] #予約された自転車のid
-        #print(bike_id)
+class Use(generic.TemplateView):
+    """
+    利用開始ページ
+    """
+    template_name = 'booking/use.html'
 
-        #scheduleからmypageに表示するユーザーを探し当てる
-        for schedule in Schedule.objects.filter(date=booking_date, start=booking_s_time, biketype=bike_id):
-            booking_e_time = schedule.end
-            user_name = schedule.user
-        #print(booking_e_time)
-        #print(user_name)
+    def get_context_data(self, **kwargs):
+        """htmlにデータを送る準備"""
 
-        context['hour'] = hour
-        context['minute'] = minute
-        context['e_time'] = booking_e_time
-        context['user'] = user_name
-
+        context = super().get_context_data(**kwargs)
         return context
