@@ -1,11 +1,11 @@
 import datetime
 from django.db.models import Q #データベース検索に使うhttps://qiita.com/okoppe8/items/66a8747cf179a538355b ⇐ここ見て（クエリの文法）！
 from django.views import generic
-from booking.models import Biketype, Schedule
+from booking.models import Biketype, Schedule, Lending_book
 
 from django.contrib import messages
 from django.shortcuts import redirect, get_object_or_404
-from booking.forms import BookForm
+from booking.forms import BookForm, LendingForm
 
 #from django.http import HttpResponse
 #from django.shortcuts import render
@@ -15,7 +15,7 @@ from booking.forms import BookForm
 #print("\n")
 
 def user_surch(bike, booking_date, booking_s_time):
-    """データベースからユーザーを探す（バイクの種類, 予約日, 予約開始時刻）"""
+    """データベースからユーザーを探す（バイクの種類, 予約日, 予約開始時刻）[0]⇛終わりの時間、[1]⇛ユーザー"""
     #自転車と自転車のidをリストに格納
     bikelist = []
     for A in Biketype.objects.all():
@@ -118,6 +118,7 @@ class Calendar(generic.TemplateView):
             for bike in bikelist:
                 row[bike] = True
             calendar[time] = row
+            #if time < 
 
         ###予約の取得
 
@@ -246,8 +247,6 @@ class Booking(generic.CreateView):
             schedule.save()
             return redirect('booking:calendar')
 
-
-        
     def form_invalid(self, form):
         """バリデーションを通らなかったとき"""
         messages.warning(self.request, 'もう一度入力してね')
@@ -284,14 +283,66 @@ class Mypage(generic.TemplateView):
         context['user'] = user_surch(bike, booking_date, booking_s_time)[1]
         return context
 
-class Use(generic.TemplateView):
+class Use(generic.CreateView):
     """
     利用開始ページ
     """
+    model = Lending_book
+    form_class = LendingForm
     template_name = 'booking/use.html'
 
     def get_context_data(self, **kwargs):
         """htmlにデータを送る準備"""
-
-        context = super().get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs) #URLから情報を取得
+        context['hour'] = distplay_time(self.kwargs.get('hour'), self.kwargs.get('min'))[0]
+        context['minute'] = distplay_time(self.kwargs.get('hour'), self.kwargs.get('min'))[1]
         return context
+
+    def form_valid(self, form):
+        """バリデーションを通った時"""
+        #貸出開始日付・時刻を取得
+        l_dt = datetime.datetime.now()
+        l_date = l_dt.date()
+        l_s_time = l_dt.time()
+
+        year = self.kwargs.get('year')
+        month = self.kwargs.get('month')
+        day = self.kwargs.get('day')
+        hour = self.kwargs.get('hour')
+        minute = self.kwargs.get('min')
+
+        booking_date = datetime.date(year=year, month=month, day=day) #date型 予約日
+        booking_s_time = datetime.time(hour=hour, minute=minute) #time 予約開始時間
+        booking_datetime = datetime.datetime(year=year, month=month, day=day, hour=hour, minute=minute) #datetime
+
+        bike = self.kwargs.get('bike') #どの自転車を使うか
+        bike_name = get_object_or_404(Biketype, bikename=bike)
+
+        #予約日と開始日の一致の確認
+        if (l_date != booking_date):
+            messages.error(self.request, "予約した日に借りましょ！")
+            return redirect('booking:use', year=year, month=month, day=day, hour=hour, min=minute, bike=bike)
+
+        else:
+            if (l_dt < booking_datetime):
+                l_difference = l_dt - booking_datetime #予約開始時間と現在時刻の差 timedelta
+                l_difference_sec = l_difference.seconds #時間部分を秒に直す int
+                print(l_difference_sec)
+                #予約時間時間
+                if (l_difference_sec > 600): #10分（600秒）以上だったら
+                    messages.error(self.request, "予約開始の10分前から借りられます！")
+                    return redirect('booking:use', year=year, month=month, day=day, hour=hour, min=minute, bike=bike)
+
+            else:
+                use_start = form.save(commit=False)
+                use_start.l_date = l_date
+                use_start.l_user = user_surch(bike, booking_date, booking_s_time)[1]
+                use_start.l_start = l_s_time
+                use_start.l_biketype = bike_name
+                use_start.save()
+                return redirect('booking:calendar')
+
+    def form_invalid(self, form):
+        """バリデーションを通らなかったとき"""
+        messages.warning(self.request, 'もう一度入力してね')
+        return super().form_invalid(form)

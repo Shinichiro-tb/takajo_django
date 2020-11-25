@@ -11,5 +11,5 @@ urlpatterns = [
 
     path('mypage/<int:year>/<int:month>/<int:day>/<int:hour>/<int:min>/<str:bike>/', views.Mypage.as_view(), name='mypage'), #マイページ(貸出・削除・返却ページ)
     
-    path('use/<str:end_time>/<str:bike>/', views.Use.as_view(), name='use') #使用開始ページ
+    path('use/<int:year>/<int:month>/<int:day>/<int:hour>/<int:min>/<str:bike>/', views.Use.as_view(), name='use') #使用開始ページ
 ]

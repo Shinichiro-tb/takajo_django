@@ -7,14 +7,24 @@
 
 {% block content %}
 <h4 class="mt-4 mb-5 border-bottom">利用開始ページ
-    <a href="{% url 'booking:calendar' %}" class="btn btn-primary btn-sm my-3">カレンダー</a><br>
+    <a href="{% url 'booking:calendar' %}" class="btn btn-info btn-sm my-3">カレンダー</a><br>
 </h4>
 
 <p class="mt-4 mb-5 border-bottom">
-    {{end_time}}までに{{bike}}を返してください！！<br>
-    安全に注意して行ってらっしゃい♪
+    貸出終了時刻までに{{bike}}を返してください！！<br>
+    安全に注意して行ってらっしゃい♪<br>
 </p>
+<form action="" method="POST">
 
-
+  {% csrf_token %}
+  <!--views.pyの変数formを受け継いでhtmlに埋め込む-->
+  {% bootstrap_form form layout='horizontal' %}
+  
+    <div class="form-group row">
+        <div class="offset-md-3 col-md-9">
+            <button type="submit" class="btn btn-primary ">OK</button>
+        </div>
+    </div>
+</form>
 
 {% endblock content %}

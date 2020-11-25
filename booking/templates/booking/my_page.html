@@ -7,7 +7,7 @@
 
 {% block content %}
 <h4 class="mt-4 mb-5 border-bottom">マイページ
-    <a href="{% url 'booking:calendar' %}" class="btn btn-primary btn-sm my-3">カレンダー</a><br>
+    <a href="{% url 'booking:calendar' %}" class="btn btn-info btn-sm my-3">カレンダー</a><br>
 </h4>
 
 <p class="mt-4 mb-5 border-bottom">
@@ -21,7 +21,7 @@
 <div class="container-fluid">
     <div class="row">
       <div class="col-md">
-        <a href="{% url 'booking:use' e_time view.kwargs.bike %}" class="btn btn-success btn-sm my-3 btn-block">利用開始</a>
+        <a href="{% url 'booking:use' view.kwargs.year view.kwargs.month view.kwargs.day hour minute view.kwargs.bike %}" class="btn btn-success btn-sm my-3 btn-block">利用開始</a>
       </div>
       <div class="col-md">
         <a href="{% url 'booking:calendar' %}" class="btn btn-danger btn-sm my-3 btn-block">予約削除</a>
