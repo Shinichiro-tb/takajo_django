@@ -14,20 +14,8 @@ from booking.forms import BookForm, LendingForm
 #print(type(difference_day)) #型確認
 #print("\n")
 
-def user_surch(bike, booking_date, booking_s_time):
+def user_surch(bike_id, booking_date, booking_s_time):
     """データベースからユーザーを探す（バイクの種類, 予約日, 予約開始時刻）[0]⇛終わりの時間、[1]⇛ユーザー"""
-    #自転車と自転車のidをリストに格納
-    bikelist = []
-    for A in Biketype.objects.all():
-        b_list = [A.id, A.bikename]
-        bikelist.append(b_list)
-    #print(bikelist)
-    number=0 #カウント変数
-    #bike_idの検索
-    while (bikelist[number][1] != bike):
-        number += 1
-    bike_id = bikelist[number][0] #予約された自転車のid
-    #print(bike_id)
     #scheduleからmypageに表示するユーザーを探し当てる
     for schedule in Schedule.objects.filter(date=booking_date, start=booking_s_time, biketype=bike_id):
         booking_e_time = schedule.end
@@ -48,19 +36,6 @@ def distplay_time(hour, minute):
         minute_str =minute
 
     return hour_str, minute_str
-
-def bike_surch(bike):
-    """自転車の名前からデーターベースに紐付けられている自転車のidの探す(自転車)"""
-    #自転車と自転車のidをリストに格納
-    bikelist = []
-    for A in Biketype.objects.all():
-        b_list = [A.id, A.bikename]
-        bikelist.append(b_list)
-    number=0 #カウント変数
-    #bike_idの検索
-    while (bikelist[number][1] != bike):
-        number += 1
-    return bikelist[number][0] #予約された自転車のid
 
 ###予約一覧カレンダー
 class Calendar(generic.TemplateView):
@@ -118,7 +93,6 @@ class Calendar(generic.TemplateView):
             for bike in bikelist:
                 row[bike] = True
             calendar[time] = row
-            #if time < 
 
         ###予約の取得
 
@@ -197,8 +171,6 @@ class Booking(generic.CreateView):
         bike = self.kwargs.get('bike') #どの自転車を使うか
         bike_name = get_object_or_404(Biketype, bikename=bike)
 
-        bike_id = bike_surch(bike)
-
         booking_date = datetime.date(year=year, month=month, day=day) #date型 予約日
         booking_s_time = datetime.time(hour=hour, minute=minute) #time 予約開始時間
 
@@ -210,7 +182,7 @@ class Booking(generic.CreateView):
         
         date_str = booking_date.strftime("%Y/%m/%d") #予約日を文字列型に
         dt_str = date_str + end_str #予約日+終了時間（文字列の足し算）
-        end_dt = datetime.datetime.strptime(dt_str, "%Y/%m/%d%H:%M:%S") #datetime型に変換
+        end_dt = datetime.datetime.strptime(dt_str, "%Y/%m/%d%H:%M:%S") #datetime型に変換 予約終了時間
 
         ##時間計算
         difference = end_dt - start_dt #使用時間 timedelta
@@ -228,7 +200,7 @@ class Booking(generic.CreateView):
 
         else:
             #schedule（データベース）から同じ自転車をその日に予約したユーザーを探し当てる
-            for schedule_list in Schedule.objects.filter(date=booking_date, biketype=bike_id):
+            for schedule_list in Schedule.objects.filter(date=booking_date, biketype=bike_name):
                 #booking_list_number = schedule_list.id
                 booking_list_s_time = schedule_list.start
                 booking_list_e_time = schedule_list.end
@@ -275,12 +247,13 @@ class Mypage(generic.TemplateView):
         booking_s_time = datetime.time(hour, minute) #貸出開始予定時間
 
         bike = str(self.kwargs.get('bike'))
+        bike_name = get_object_or_404(Biketype, bikename=bike)
         #print(bike)
 
         context['hour'] = distplay_time(hour, minute)[0]
         context['minute'] = distplay_time(hour, minute)[1]
-        context['e_time'] = user_surch(bike, booking_date, booking_s_time)[0]
-        context['user'] = user_surch(bike, booking_date, booking_s_time)[1]
+        context['e_time'] = user_surch(bike_name, booking_date, booking_s_time)[0]
+        context['user'] = user_surch(bike_name, booking_date, booking_s_time)[1]
         return context
 
 class Use(generic.CreateView):
@@ -336,7 +309,7 @@ class Use(generic.CreateView):
             else:
                 use_start = form.save(commit=False)
                 use_start.l_date = l_date
-                use_start.l_user = user_surch(bike, booking_date, booking_s_time)[1]
+                use_start.l_user = user_surch(bike_name, booking_date, booking_s_time)[1]
                 use_start.l_start = l_s_time
                 use_start.l_biketype = bike_name
                 use_start.save()
