@@ -11,9 +11,6 @@ from booking.forms import BookForm, LendingForm
 #from django.shortcuts import render
 #from django.utils import timezone
 
-#print(type(difference_day)) #型確認
-#print("\n")
-
 def user_surch(bike_id, booking_date, booking_s_time):
     """データベースからユーザーを探す（バイクの種類, 予約日, 予約開始時刻）[0]⇛終わりの時間、[1]⇛ユーザー"""
     #scheduleからmypageに表示するユーザーを探し当てる
@@ -143,7 +140,6 @@ class Calendar(generic.TemplateView):
 
         return context
 
-
 class Booking(generic.CreateView):
     """
     予約フォームを作る
@@ -172,17 +168,19 @@ class Booking(generic.CreateView):
         bike_name = get_object_or_404(Biketype, bikename=bike)
 
         booking_date = datetime.date(year=year, month=month, day=day) #date型 予約日
-        booking_s_time = datetime.time(hour=hour, minute=minute) #time 予約開始時間
+        booking_s_time = datetime.time(hour=hour, minute=minute) #time 予約開始時刻
 
-        end_str = self.request.POST.get('end') + ":00" #str型 form入力データ
-        #print(end_str)
+        end_str = self.request.POST.get('end') #str型 form入力データ
+        if (len(end_str)<=5): #秒まで入力しなかったら
+            end_str += ":00" 
+        print(end_str)
 
         ##計算のために型を変換する
         start_dt = datetime.datetime.combine(booking_date, booking_s_time) #datetime 予約日+予約開始
         
         date_str = booking_date.strftime("%Y/%m/%d") #予約日を文字列型に
         dt_str = date_str + end_str #予約日+終了時間（文字列の足し算）
-        end_dt = datetime.datetime.strptime(dt_str, "%Y/%m/%d%H:%M:%S") #datetime型に変換 予約終了時間
+        end_dt = datetime.datetime.strptime(dt_str, "%Y/%m/%d%H:%M:%S") #datetime型に変換 予約終了時刻
 
         ##時間計算
         difference = end_dt - start_dt #使用時間 timedelta
@@ -199,14 +197,14 @@ class Booking(generic.CreateView):
             return redirect('booking:book', year=year, month=month, day=day, hour=hour, min=minute, bike=bike)
 
         else:
-            #schedule（データベース）から同じ自転車をその日に予約したユーザーを探し当てる
+            #schedule（データベース・予約表）から同じ自転車をその日に予約したユーザーを探し当てる
             for schedule_list in Schedule.objects.filter(date=booking_date, biketype=bike_name):
                 #booking_list_number = schedule_list.id
-                booking_list_s_time = schedule_list.start
-                booking_list_e_time = schedule_list.end
+                booking_list_s_time = schedule_list.start #予約表の"あるユーザ"の予約開始時刻
+                booking_list_e_time = schedule_list.end #予約表の"あるユーザ"の予約終了時刻
                 #user_list_name = schedule_list.user
-                print(booking_list_s_time)
-                print(end_dt.time())
+                print(booking_list_s_time) #
+                print(end_dt.time()) #いま入力した人の予約終了時刻
                 print("\n")
                 if (booking_list_s_time < end_dt.time() and end_dt.time() < booking_list_e_time):
                     messages.error(self.request, '終了時間が他の利用者とかぶっています')
@@ -223,7 +221,6 @@ class Booking(generic.CreateView):
         """バリデーションを通らなかったとき"""
         messages.warning(self.request, 'もう一度入力してね')
         return super().form_invalid(form)
-
 
 class Mypage(generic.TemplateView):
     """
@@ -297,10 +294,10 @@ class Use(generic.CreateView):
             return redirect('booking:use', year=year, month=month, day=day, hour=hour, min=minute, bike=bike)
 
         else:
-            if (l_dt < booking_datetime):
+            if (l_dt < booking_datetime): #現在時刻が予約時刻より前だったら
                 l_difference = l_dt - booking_datetime #予約開始時間と現在時刻の差 timedelta
                 l_difference_sec = l_difference.seconds #時間部分を秒に直す int
-                print(l_difference_sec)
+                #print(l_difference_sec)
                 #予約時間時間
                 if (l_difference_sec > 600): #10分（600秒）以上だったら
                     messages.error(self.request, "予約開始の10分前から借りられます！")
