@@ -173,14 +173,14 @@ class Booking(generic.CreateView):
         end_str = self.request.POST.get('end') #str型 form入力データ
         if (len(end_str)<=5): #秒まで入力しなかったら
             end_str += ":00" 
-        print(end_str)
+        #print(end_str)
 
         ##計算のために型を変換する
         start_dt = datetime.datetime.combine(booking_date, booking_s_time) #datetime 予約日+予約開始
         
         date_str = booking_date.strftime("%Y/%m/%d") #予約日を文字列型に
         dt_str = date_str + end_str #予約日+終了時間（文字列の足し算）
-        end_dt = datetime.datetime.strptime(dt_str, "%Y/%m/%d%H:%M:%S") #datetime型に変換 予約終了時刻
+        end_dt = datetime.datetime.strptime(dt_str, "%Y/%m/%d%H:%M:%S") #datetime型に変換 予約終了日時
 
         ##時間計算
         difference = end_dt - start_dt #使用時間 timedelta
@@ -208,6 +208,10 @@ class Booking(generic.CreateView):
                 print("\n")
                 if (booking_list_s_time < end_dt.time() and end_dt.time() < booking_list_e_time):
                     messages.error(self.request, '終了時間が他の利用者とかぶっています')
+                    return redirect('booking:book', year=year, month=month, day=day, hour=hour, min=minute, bike=bike)
+
+                elif (start_dt.time() < booking_list_s_time and booking_list_e_time < end_dt.time()):
+                    messages.error(self.request, '予約時間が他の利用者とかぶっています')
                     return redirect('booking:book', year=year, month=month, day=day, hour=hour, min=minute, bike=bike)
 
             schedule = form.save(commit=False)
