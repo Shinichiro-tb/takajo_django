@@ -1,25 +1,27 @@
 import datetime
 from django.db.models import Q #データベース検索に使うhttps://qiita.com/okoppe8/items/66a8747cf179a538355b ⇐ここ見て（クエリの文法）！
 from django.views import generic
-from booking.models import Biketype, Schedule, Lending_book
+from booking.models import Biketype, Schedule, Lending_book #参考までにhttps://btj0.com/blog/django/method-attribute/
 
 from django.contrib import messages
 from django.shortcuts import redirect, get_object_or_404
 from booking.forms import BookForm, LendingForm
+from django.urls import reverse_lazy, reverse
 
 #from django.http import HttpResponse
 #from django.shortcuts import render
 #from django.utils import timezone
 
 def user_surch(bike_id, booking_date, booking_s_time):
-    """データベースからユーザーを探す（バイクの種類, 予約日, 予約開始時刻）[0]⇛終わりの時間、[1]⇛ユーザー"""
+    """予約表のデータベースからユーザーを探す（バイクの種類, 予約日, 予約開始時刻）[0]⇛終わりの時間、[1]⇛ユーザー、[2]⇛id"""
     #scheduleからmypageに表示するユーザーを探し当てる
     for schedule in Schedule.objects.filter(date=booking_date, start=booking_s_time, biketype=bike_id):
         booking_e_time = schedule.end
         user_name = schedule.user
+        booking_id = schedule.id
     #print(booking_e_time)
     #print(user_name)
-    return booking_e_time, user_name
+    return booking_e_time, user_name, booking_id
 
 def distplay_time(hour, minute):
     """時間表示をきれいにする(時, 分)"""
@@ -255,6 +257,7 @@ class Mypage(generic.TemplateView):
         context['minute'] = distplay_time(hour, minute)[1]
         context['e_time'] = user_surch(bike_name, booking_date, booking_s_time)[0]
         context['user'] = user_surch(bike_name, booking_date, booking_s_time)[1]
+        context['booking_id'] = user_surch(bike_name, booking_date, booking_s_time)[2]
         return context
 
 class Use(generic.CreateView):
@@ -320,3 +323,12 @@ class Use(generic.CreateView):
         """バリデーションを通らなかったとき"""
         messages.warning(self.request, 'もう一度入力してね')
         return super().form_invalid(form)
+
+class BookingDelete(generic.DeleteView):
+    """
+    予約削除ページ
+    """
+    template_name = 'booking/booking_delete.html'
+    model = Schedule
+
+    success_url = reverse_lazy("booking:calendar") #削除成功したらカレンダーへ
