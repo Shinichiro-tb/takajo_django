@@ -23,7 +23,7 @@ class Lending_bookAdmin(admin.ModelAdmin):
     """
     貸出簿
     """
-    list_display = ('id', 'l_date', 'l_start', 'l_end', 'l_user', 'l_biketype', 'l_place',)
+    list_display = ('id', 'booking_id', 'l_date', 'l_start', 'l_end', 'l_user', 'l_biketype', 'l_place',)
     list_display_links = ('id', 'l_user',)
 
 admin.site.register(Lending_book, Lending_bookAdmin)

@@ -26,7 +26,7 @@ class Schedule(models.Model):
     """予約スケジュール"""
     date = models.DateField('利用日')
     start = models.TimeField('開始時間')
-    end = models.TimeField('終了時間')
+    end = models.TimeField('終了時間', blank=True)
     user = models.CharField('名前', max_length=255)
     biketype = models.ForeignKey(Biketype, verbose_name='使用自転車', on_delete=models.CASCADE) #自転車の種類と紐付け
 
@@ -37,6 +37,7 @@ class Schedule(models.Model):
         return f'{self.user} {date} {start} ^ {end} {self.biketype}'
 
 class Lending_book(models.Model):
+    booking_id = models.IntegerField('予約番号')
     l_date = models.DateField('利用開始日')
     l_user = models.CharField('利用者名', max_length=255)
     l_start = models.TimeField('利用開始時刻')

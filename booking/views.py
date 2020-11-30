@@ -173,6 +173,10 @@ class Booking(generic.CreateView):
         booking_s_time = datetime.time(hour=hour, minute=minute) #time 予約開始時刻
 
         end_str = self.request.POST.get('end') #str型 form入力データ
+        #print(end_str)
+        if (end_str==""): #終了時間を入力しなかったら
+            messages.error(self.request, '予約終了時間書いてください')
+            return redirect('booking:book', year=year, month=month, day=day, hour=hour, min=minute, bike=bike)
         if (len(end_str)<=5): #秒まで入力しなかったら
             end_str += ":00" 
         #print(end_str)
@@ -312,6 +316,7 @@ class Use(generic.CreateView):
 
             else:
                 use_start = form.save(commit=False)
+                use_start.booking_id = self.kwargs.get('booking_id')
                 use_start.l_date = l_date
                 use_start.l_user = user_surch(bike_name, booking_date, booking_s_time)[1]
                 use_start.l_start = l_s_time
@@ -332,3 +337,28 @@ class BookingDelete(generic.DeleteView):
     model = Schedule
 
     success_url = reverse_lazy("booking:calendar") #削除成功したらカレンダーへ
+
+class FnishPage(generic.UpdateView):
+    template_name = 'booking/update.html'
+    model = Schedule
+    fields = ['end']
+
+    def form_valid(self, form):
+        f_time = datetime.datetime.now().time()
+        print(f_time)
+        booking_schedule = form.save(commit=False)
+        booking_schedule.end = f_time
+        booking_schedule.save()
+        return redirect('booking:calendar')
+
+    def get_success_url(self):
+        return redirect('booking:calendar')
+"""
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs) #URLから情報を取得
+        for lending_book in Lending_book.booking_id.filter(booking_id=self.kwargs.get('booking_id')):
+            lending_book_id = lending_book.id
+
+        context['lending_id'] = lending_book_id
+        return context
+"""
