@@ -41,7 +41,7 @@ class Lending_book(models.Model):
     l_date = models.DateField('利用開始日')
     l_user = models.CharField('利用者名', max_length=255)
     l_start = models.TimeField('利用開始時刻')
-    l_end = models.TimeField('利用終了時刻', blank=True, null=True)
+    l_end = models.TimeField('利用終了時刻', blank=True)
     l_biketype = models.ForeignKey(Biketype, verbose_name='利用自転車', on_delete=models.CASCADE)
     l_place = models.CharField('行き先', max_length=255)
 

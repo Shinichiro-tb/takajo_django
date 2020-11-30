@@ -320,6 +320,7 @@ class Use(generic.CreateView):
                 use_start.l_date = l_date
                 use_start.l_user = user_surch(bike_name, booking_date, booking_s_time)[1]
                 use_start.l_start = l_s_time
+                use_start.l_end = l_s_time
                 use_start.l_biketype = bike_name
                 use_start.save()
                 return redirect('booking:calendar')
@@ -345,20 +346,18 @@ class FnishPage(generic.UpdateView):
 
     def form_valid(self, form):
         f_time = datetime.datetime.now().time()
-        print(f_time)
+        #print(f_time)
+        #予約表の予約終了時間の書き換え
         booking_schedule = form.save(commit=False)
         booking_schedule.end = f_time
         booking_schedule.save()
+        #print(self.kwargs.get('pk'))
+        for lending_book in Lending_book.objects.filter(booking_id=self.kwargs.get('pk')):
+            lending_book_id = lending_book.id
+            L_book = Lending_book.objects.get(id=lending_book_id)
+            L_book.l_end = f_time
+            L_book.save()
         return redirect('booking:calendar')
 
     def get_success_url(self):
         return redirect('booking:calendar')
-"""
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs) #URLから情報を取得
-        for lending_book in Lending_book.booking_id.filter(booking_id=self.kwargs.get('booking_id')):
-            lending_book_id = lending_book.id
-
-        context['lending_id'] = lending_book_id
-        return context
-"""
