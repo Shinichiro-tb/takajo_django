@@ -298,25 +298,28 @@ class Use(generic.CreateView):
 
         bike = self.kwargs.get('bike') #どの自転車を使うか
         bike_name = get_object_or_404(Biketype, bikename=bike)
+        booking_id = self.kwargs.get('booking_id')
 
         #予約日と開始日の一致の確認
         if (l_date != booking_date):
             messages.error(self.request, "予約した日に借りましょ！")
-            return redirect('booking:use', year=year, month=month, day=day, hour=hour, min=minute, bike=bike)
+            return redirect('booking:use', year=year, month=month, day=day, hour=hour, min=minute, bike=bike, booking_id=booking_id)
 
         else:
-            if (l_dt < booking_datetime): #現在時刻が予約時刻より前だったら
-                l_difference = l_dt - booking_datetime #予約開始時間と現在時刻の差 timedelta
-                l_difference_sec = l_difference.seconds #時間部分を秒に直す int
-                #print(l_difference_sec)
-                #予約時間時間
-                if (l_difference_sec > 600): #10分（600秒）以上だったら
-                    messages.error(self.request, "予約開始の10分前から借りられます！")
-                    return redirect('booking:use', year=year, month=month, day=day, hour=hour, min=minute, bike=bike)
+            l_difference = booking_datetime - l_dt #予約開始時間と現在時刻の差 timedelta
+            l_difference_sec = l_difference.seconds #時間部分を秒に直す int
+            #print(l_dt)
+            #print(booking_datetime)
+            #print(l_difference)
+            #print(l_difference_sec)
+                
+            if (l_dt < booking_datetime and l_difference_sec > 600): #現在時刻が予約時刻より前 かつ 10分（600秒）以上だったら
+                messages.error(self.request, "予約開始の10分前から借りられます！")
+                return redirect('booking:use', year=year, month=month, day=day, hour=hour, min=minute, bike=bike, booking_id=booking_id)
 
             else:
                 use_start = form.save(commit=False)
-                use_start.booking_id = self.kwargs.get('booking_id')
+                use_start.booking_id = booking_id
                 use_start.l_date = l_date
                 use_start.l_user = user_surch(bike_name, booking_date, booking_s_time)[1]
                 use_start.l_start = l_s_time
