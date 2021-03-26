@@ -21,4 +21,8 @@
 `>>>exit()`
 ## Bootstrap4のインストール
 1. インストール  
+<<<<<<< HEAD
 `pip install bootstrap4`
+=======
+`pip install bootstrap4`
+>>>>>>> 36a20a2c304ebc3197033198e132be28d760a938
